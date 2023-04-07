@@ -1,14 +1,29 @@
 # emscripten-bindings
 
+The following repository contains the "feature extraction" part of Stella VSLAM, i.e. the process which allows you to obtain keypoints and descriptors from an image.
+
+The C++ code present here can be transpiled/compiled into WASM files, which allows you to execute this code in any browser.
+
+Camera capture isn't a part of this repository.
+
+## What are 'bindings'
+
+Bindings serve as a interface between Javascript and WASM code. Think it like a sort of API.
+
+With these bindings, you can make calls to WASM code through Javascript. For example, you can instantiate classes and call instance methods.
+
+## Compiling instructions
+
 - Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html).
 - Activate emsdk properly following the instructions on the emscripten site.
 - Run source /path/to/emsdk/emsdk_env.sh.
 - Run emmake make in project's root directory.
 - main.js and main.wasm should appear inside build/wasm/ directory.
 
-# OpenCV library
+## OpenCV: libraries we use
 
 OpenCV modules are compiled as static libraries.
+
 These are the reasons for each library, the functions and classes from each module:
 
 - core: Mat
