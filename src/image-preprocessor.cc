@@ -316,7 +316,7 @@ emscripten::val ImagePreprocessor::get_output_image() {
     cv::Mat outImage = img.clone();
     
     // TODO: draw keypoints configurable option?
-    cv::drawKeypoints(img, keypts_, outImage);
+    cv::drawKeypoints(img, keypts_, outImage, cv::Scalar(0,255,0));
 
     if (draw_trajectory_marker)
         draw_marker(outImage);    
