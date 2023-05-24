@@ -7,7 +7,6 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/features2d.hpp"
 #include <emscripten/emscripten.h>
-#include <emscripten/websocket.h>
 #include <emscripten/val.h>
 #include <iostream>
 
@@ -49,23 +48,6 @@ struct ArrayPointer {
 class ImagePreprocessor {
 public:
     //! Constructor
-    ImagePreprocessor(int ptr_to_ptr_mask_arr, 
-        const int max_num_keypoints,
-        const std::string name, 
-        const float scale_factor, 
-        const unsigned int num_levels,
-        const unsigned int ini_fast_thr, 
-        const unsigned int min_fast_thr,
-        const std::string SERVER_IP,
-        const int slamMode,
-        const bool debug = false);
-
-    ImagePreprocessor(const int max_num_keypoints,
-        const std::string SERVER_IP,
-        const int slamMode,
-        const bool debug = false);
-
-
     ImagePreprocessor(const int max_num_keypoints,
         const bool debug = false);
 
@@ -75,34 +57,12 @@ public:
     void load_image(int buffer, int width, int height);
     void preprocess_image();
     emscripten::val get_output_image();
-    void sendMapName(std::string mapName);
-    void saveInitialCameraPose();
-    void saveFinalCameraPose();
-    void stopSLAM();
-    void sendGravityVector(int pointer);
-    void set_server_message_callback();
-    void startNewTrajectory();
-    void addNewPointToTrajectory();
-    void discardTrajectoryLastPoint();
-    void finishTrajectory();
-    void followTrajectory(float tId, float ini, float fin);
-    void stopAndDiscard();
 
 private:
     std::vector<float> serializeKeypoints();
     void serialize_results(const cv::_InputArray& in_descriptors, const cv::_OutputArray& cFrame);
     std::vector<std::vector<float>> read_mask_rectangles(int ptr_to_ptr_mask_arr);
-
-    float get_marker_size();
-    std::string get_direction_text();    
-    void draw_marker(cv::Mat& outImage);
-    void draw_finished_message(cv::Mat& outImage);
-
-    static EMSCRIPTEN_WEBSOCKET_T create_websocket_instance(const std::string SERVER_IP, const int mode);
-    static EM_BOOL process_server_message(int eventType, const EmscriptenWebSocketMessageEvent *websocketEvent, void *userData);
-    void send_data(float * results, uint32_t size);
-    bool check_if_connection_is_alive();
-
+   
     // ORB extractors
     //! ORB extractor for left/monocular image
     orb_extractor* extractor_left_ = nullptr;
@@ -121,23 +81,11 @@ private:
     //! current operation mode
     OperationMode operationMode;
 
-    //! used to send first frame always
-    bool sendFirstFrame = true;
-
     //! counter for frames
     unsigned int frameCount = 0;
 
-    bool draw_trajectory_marker = false;
-    bool draw_trajectory_finish = false;
-    float direction = -1;
-    float marker_distance;
-    float marker_x;
-
     //! stores latest extracted frame
     cv::Mat currentFrame;
-    
-    //! Websocket instance
-    EMSCRIPTEN_WEBSOCKET_T ws;
 };
 
 #endif // IMAGE_PREPROCESSOR_H
