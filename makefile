@@ -6,6 +6,7 @@ CXXFLAGS := -std=c++11 -Wall -Wextra -O3 -msimd128
 
 LDFLAGS  := --bind -lembind -pthread -lwebsocket.js -sTOTAL_MEMORY=128MB --profiling -sNO\_FILESYSTEM=1 -flto -s"ENVIRONMENT=web,worker" -sPTHREAD_POOL_SIZE=8 
 LDFLAGS += -L./libs/opencv/ ./libs/opencv/libopencv_features2d.a ./libs/opencv/libopencv_core.a ./libs/opencv/libopencv_imgproc.a 
+EXPORTED_FUNCTIONS = _malloc,_free
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/wasm
@@ -27,7 +28,7 @@ $(OBJ_DIR)/%.o: %.cc
 
 $(APP_DIR)/$(TARGET): $(OBJECTS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/$(TARGET) $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) -o $(APP_DIR)/$(TARGET) $^ $(LDFLAGS)
 
 -include $(DEPENDENCIES)
 
