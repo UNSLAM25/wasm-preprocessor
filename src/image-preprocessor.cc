@@ -7,14 +7,10 @@
     Also allow several paramters such as a mask array, scale factors, etc.
 */
 
-ImagePreprocessor::ImagePreprocessor(const int max_num_keypoints, const bool debug) : DEBUG(debug) {    
+ImagePreprocessor::ImagePreprocessor(const int max_num_keypoints){    
     orb_params * orb_params_ = new orb_params("default");        
     std::vector<std::vector<float>> mask_rectangles = {};
     extractor_left_ = new orb_extractor(orb_params_, max_num_keypoints, mask_rectangles);
-    descriptors_ = cv::Mat();
-    // empty mask
-    mask = cv::Mat();
-    operationMode = CLIENT;
     std::cout << "Created instance of ImagePreprocessor" << "\n";
 }
 
@@ -26,8 +22,6 @@ void ImagePreprocessor::load_image(int buffer, int width, int height)
     uint8_t* ptr = reinterpret_cast<uint8_t*>(buffer);    
     // Release previous image
     img.release();
-    image_width = width;
-    image_height = height;
     // Fill new image
     img = cv::Mat(height, width, CV_8UC4, ptr);
 }
@@ -48,21 +42,15 @@ void ImagePreprocessor::preprocess_image() {
     descriptors_.release();
 
     keypts_.clear();
-    // auto start = std::chrono::steady_clock::now();
-    extractor_left_->extract(img_gray, mask, keypts_, descriptors_);
-    // auto finish = std::chrono::steady_clock::now();
-    // double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
-    // std::cout << "Total EXTRACT time: " << elapsed_seconds << "\n";
+    extractor_left_->extract(img_gray, cv::Mat(), keypts_, descriptors_);
 
     if (keypts_.empty()) {
         std::cout << "preprocess: cannot extract any keypoints" << "\n";
         return;
     }
 
-    serialize_results(descriptors_, currentFrame);
-
-    // Once we've got it, send first frame
-    // If we don't do this, the server will get stuck waiting for data
+    auto results = serialize_results(descriptors_);
+    // At this point results are not sent to anywhere.
 }
 
 emscripten::val ImagePreprocessor::get_output_image() {
@@ -70,16 +58,13 @@ emscripten::val ImagePreprocessor::get_output_image() {
         return emscripten::val(0);
 
     cv::Mat outImage = img.clone();
-    
-    // TODO: draw keypoints configurable option?
     cv::drawKeypoints(img, keypts_, outImage, cv::Scalar(0,255,0));
 
     // Data is already contigous because we cloned earlier
-    // return emscripten::val(emscripten::typed_memory_view(outImage.total()*outImage.channels(), outImage.clone().data));
     return emscripten::val(emscripten::typed_memory_view(outImage.total()*outImage.channels(), outImage.data));
 }
 
-void ImagePreprocessor::serialize_results(const cv::_InputArray& in_descriptors, const cv::_OutputArray& cFrame) {
+cv::Mat ImagePreprocessor::serialize_results(const cv::_InputArray& in_descriptors) {
     std::vector<float> keypoints = serializeKeypoints();
 
     unsigned int howManyFeatures = in_descriptors.rows();
@@ -87,26 +72,10 @@ void ImagePreprocessor::serialize_results(const cv::_InputArray& in_descriptors,
     cv::Mat descr = in_descriptors.getMat();
     descr.convertTo(descr, CV_32F);
     cv::Mat matKeypoints = cv::Mat(keypoints).reshape(1, howManyFeatures);
-    cv::Mat temp;
-    cv::hconcat(descr, matKeypoints, temp);
-
-    if (DEBUG)
-    {
-        cv::Mat extraInfo(temp.rows, 2, 0);
-        extraInfo.convertTo(extraInfo, CV_32F);
-        extraInfo.at<float>(0,0) = COMMAND_PROCESS_DEBUG_FRAME;
-        extraInfo.at<float>(0,1) = frameCount;   
-        cv::hconcat(extraInfo, temp, cFrame);
-    }
-    else 
-    {
-        cv::Mat extraInfo(temp.rows, 1, 0);
-        extraInfo.convertTo(extraInfo, CV_32F);
-        extraInfo.at<float>(0,0) = COMMAND_PROCESS_FRAME;        
-        cv::hconcat(extraInfo, temp, cFrame); 
-    }
-
+    cv::Mat results;
+    cv::hconcat(descr, matKeypoints, results);
     frameCount += 1;
+    return results;
 }
 
 std::vector<float> ImagePreprocessor::serializeKeypoints() {
@@ -120,30 +89,4 @@ std::vector<float> ImagePreprocessor::serializeKeypoints() {
     }   
     
     return keypoints;
-}
-
-/*
-*   Read mask rectangles from WebAssembly's heap.
-*   int ptr_to_ptr_mask_arr is a pointer to an array of pointers
-*/
-std::vector<std::vector<float>> ImagePreprocessor::read_mask_rectangles(int ptr_to_ptr_mask_arr) {
-    const int arrSize = 4;
-    std::vector<std::vector<float>> mask_rectangles = {};    
-
-    uint32_t * arrPointer = reinterpret_cast<uint32_t *>(ptr_to_ptr_mask_arr);  
-
-    for (int i = 0; i < arrSize; i++)
-    {
-        std::vector<float> temp = {};
-        float* pointer = reinterpret_cast<float*>(arrPointer[i]);    
-
-        for (int i = 0; i < arrSize; i++)
-        {
-            temp.push_back(pointer[i]);
-        } 
-
-        mask_rectangles.push_back(temp);
-    } 
-
-    return mask_rectangles;   
 }
