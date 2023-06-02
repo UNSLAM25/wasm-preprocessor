@@ -10,7 +10,7 @@ EXPORTED_FUNCTIONS = _malloc,_free
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/wasm
-TARGET   := main.js
+TARGET   := preprocessor.js
 INCLUDE  := -I./include/
 SRC      :=                     \
    $(wildcard src/util/*.cc)    \

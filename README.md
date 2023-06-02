@@ -1,35 +1,83 @@
-# emscripten-bindings
+# WASM preprocessor
 
-The following repository contains the "feature extraction" part of Stella VSLAM, i.e. the process which allows you to obtain keypoints and descriptors from an image.
+The preprocessor extracts features (keypoints and descriptors) from image on the phone, as part of a bigger project.
+It is meant to run in a browser, so it is compiled with emscripten to web assembly.
+This repository deals with the generation of these webassembly files to be used on a web page.  The web-preprocessor repository has a demo of this preprocessor running on web.
 
-The C++ code present here can be transpiled/compiled into WASM files, which allows you to execute this code in any browser.
+The preprocessor is written in C++, with some parts from stella_vslam open source non restrictive project.  It uses OpenCV, so this repository hosts some compiled OpenCV libraries.
 
-Camera capture isn't a part of this repository.
+# Compiling instructions
 
-## What are 'bindings'
+- Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html)
+- Activate emsdk properly following the instructions on the emscripten site
+- Run source /path/to/emsdk/emsdk_env.sh
+- Run emmake make in this project's directory
 
-Bindings serve as a interface between Javascript and WASM code. Think it like a sort of API.
+If all works fine, build/wasm/ directory will appear, holding the 3 files you need to use in you web page.  These files are the preprocessor itself and the initialization binding process.  You can see web-preprocessor repository for a sample of use.
 
-With these bindings, you can make calls to WASM code through Javascript. For example, you can instantiate classes and call instance methods.
+makefile file has the recipe to build de whole module.  It takes care of enabling multithreading.
 
-## Compiling instructions
+# Wasm object
 
-- Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html).
-- Activate emsdk properly following the instructions on the emscripten site.
-- Run source /path/to/emsdk/emsdk_env.sh.
-- Run emmake make in project's root directory.
-- main.js and main.wasm should appear inside build/wasm/ directory.
+This files contains the Preprocessor class, with these methods:
 
-## OpenCV: libraries we use
+- constructor(max num of keypoints)
+- features preprocess(buffer, widht, heidht)
+    - images are passed from javascript as a data buffer pointer, along with pixel resolution; images are RGBA
+    - returns features, as an array object described below
+- image getAnnotations()
+    - returns de annotated image from the last preprocessing, as an array object described below
 
-OpenCV modules are compiled as static libraries.
+The private method toArray() produces the javascript classless array object has this properties:
 
-These are the reasons for each library, the functions and classes from each module:
+- array: Uint8Array
+- width and height of a matrix
+- type, OpenCV CvMat type; 24 for RGBA, 0 for monochromatic, 5 for float
+- elementSize in bytes; 4 for RGBA
 
-- core: Mat
-- improc: cvtColor ([two times](https://github.com/UNSLAM/emscripten-bindings/blob/5a4afcf9539b54b9e8c22db6d74f360511e33441/util/image_converter.cc#L12))
-- feature2d: FAST ([two times](https://github.com/UNSLAM/emscripten-bindings/blob/53e0443a0b423d71ce00dad3bd3da9796c3cea89/feature/orb_extractor.cc#L276))
-- flann: not used
-- calib3d: not used, but on slam is used to undirstort [cv::undistortPoint three times in perspective.cc](https://github.com/stella-cv/stella_vslam/blob/2c61d3434c31ff32ed99666bc3699c6845d6301b/src/stella_vslam/camera/perspective.cc)
-- photo: not used
-- video: not used
+# Project structure
+
+- src
+    - main.cc emscripten javascript binding code; here so can see what will be visible from javascript
+    - preprocessor.h and preprocessor.cc defines the Preprocessor class, including code from feature folder
+    - feature and util folders, host files copied from stella_vslam
+- libs/opencv2 has the three OpenCV static libraries already compiled for this project
+- include/opencv2 has a bunch of headers from OPenCV to include those libraries
+
+# OpenCV libraries
+
+This project uses these OpenCV libraries:
+
+- core, for Mat
+- improc, for cvtColor
+- feature2d, for FAST
+
+Including a whole OpenCV module only to use one function may sound overkill, but keep in mind that the final build will strip out the unused WASM code.
+
+These OpenCV modules are compiled as static libraries in librs/opencv:
+
+- libopencv_core.a
+- libopencv_improc.a
+- libopencv_feature2d.a
+
+This repository provides these already compiled static libraries ready to use in the building of the webassmebly preprocessor module.  These libraries where compiled with multithreading enabled.
+
+# How to compile OpenCV into WASM
+
+Follow this steps to compile OpenCV into WASM.
+
+- Download your preferred OpenCV version (3 or 4)
+- Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html). 
+- Run the following commands:
+    
+        source /home/squiro/Desktop/emsdk/emsdk_env.sh
+        export EMSCRIPTEN=/home/squiro/Desktop/emsdk/upstream/emscripten
+
+- Run:
+
+        emcmake python ./platforms/js/build_js.py build_wasm --build_wasm --threads --simd --cmake_option="-DCMAKE_INSTALL_PREFIX=/home/squiro/Desktop/install" --cmake_option="-DENABLE_CXX11=ON" --cmake_option="-DWITH_EIGEN=ON" --cmake_option="-DBUILD_JASPER=OFF" --cmake_option="-DBUILD_OPENEXR=OFF"
+
+Note from experience: if it fails with unreconigzed arguments, execute it without emcmake wrapper (from python on).
+This command will build opencv.js with threading (web-workers) and simd enable. 
+
+- Copy the three desired .a libraries and place them inside the ./libs folder in this project libs/opencv
