@@ -19,7 +19,7 @@ makefile file has the recipe to build de whole module.  It takes care of enablin
 
 # Wasm object
 
-This files contains the Preprocessor class, with these methods:
+This files contains the Preprocessor class, with these methods (see perprocessor.h for more details):
 
 - constructor(max num of keypoints)
 - features preprocess(buffer, widht, heidht)
@@ -34,6 +34,20 @@ The private method toArray() produces the javascript classless array object has 
 - width and height of a matrix
 - type, OpenCV CvMat type; 24 for RGBA, 0 for monochromatic, 5 for float
 - elementSize in bytes; 4 for RGBA
+
+The features returned by preprocess():
+
+- array of 3Nx4 float, containing N features
+- the first 2N rows have N 256 bits descriptors, 2 rows each
+- the last N rows have N keypoints, with the following parameters:
+    - col 0: pt.x
+    - col 1: pt.y
+    - col 2: angle
+    - col 3: octave
+
+As octave is a 32 bits int, it was parsed into float without modification, you can get it back in C++ by:
+
+    int octave = *(int*)&col3;
 
 # Project structure
 
