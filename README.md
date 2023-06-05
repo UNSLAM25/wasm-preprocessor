@@ -37,7 +37,7 @@ The private method toArray() produces the javascript classless array object has 
 
 The features returned by preprocess():
 
-- array of 3Nx4 float, containing N features
+- Mat of 3Nx4 float, containing N features (returned to javascript as UInt8Array of length 48N)
 - the first 2N rows have N 256 bits descriptors, 2 rows each
 - the last N rows have N keypoints, with the following parameters:
     - col 0: pt.x
@@ -48,6 +48,12 @@ The features returned by preprocess():
 As octave is a 32 bits int, it was parsed into float without modification, you can get it back in C++ by:
 
     int octave = *(int*)&col3;
+
+In the consuming end (C++ visual slam), you need to parse this array in this way:
+
+- N = lenght in bytes / 48
+- 66% (first 32N bytes) are descriptors as Mat CV_8UC1 Nx32
+- 33% (last 16N bytes) are N keypoints with only the abovementioned 4 properties set (other properties are unused by stella_vslam)
 
 # Project structure
 
