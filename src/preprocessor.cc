@@ -6,7 +6,7 @@
 #define MAT(mat) //cout << #mat ": rows " << mat.rows << ", cols " << mat.cols << ", type " << mat.type() << ", bytes " <<  mat.total()*mat.elemSize() << endl;
 
 Preprocessor::Preprocessor(const int max_num_keypoints){    
-    orb_params * orb_params_ = new orb_params("default");        
+    orb_params * orb_params_ = new orb_params("default");
     extractor = new orb_extractor(orb_params_, max_num_keypoints, {});
     cout << "extractor " << extractor << endl;
 }
@@ -43,16 +43,24 @@ val Preprocessor::preprocess(int ptr, int width, int height){
     // serialize descriptors and keypoints on a Mat
     auto howManyFeatures = descriptors.rows;  // Same as keypoints.size()
     //cout << "howManyFeatures " << howManyFeatures << endl;
-    Mat serializedFeatures(howManyFeatures*2, 4, CV_32FC1, descriptors.data);
-    serializedFeatures.resize(howManyFeatures*3);  // Possible copy of descriptors
+    //Mat serializedFeatures(howManyFeatures*2, 4, CV_32FC1, descriptors.data);
+    //serializedFeatures.resize(howManyFeatures*3);  // Possible copy of descriptors
+    Mat serializedFeatures(howManyFeatures*3, 4, CV_32SC1);
+    Mat serializedDescriptors(howManyFeatures*2, 4, CV_32SC1, descriptors.data);
+    serializedDescriptors.copyTo(serializedFeatures.rowRange(0,howManyFeatures*2));
     size_t row = howManyFeatures*2;//, end=serializedFeatures.rows;
+    cout << "howManyFeatures " << howManyFeatures << endl;
+    cout << "Row & Keypoint x,y, angle:" << row << ", " << keypoints[0].pt.x << ", " << keypoints[0].pt.y << ", " << keypoints[0].angle << endl;
     for(const auto& keypoint : keypoints){
-        serializedFeatures.at<float>(row, 0) = keypoint.pt.x;
-        serializedFeatures.at<float>(row, 1) = keypoint.pt.y;
-        serializedFeatures.at<float>(row, 2) = keypoint.angle;
-        serializedFeatures.at<float>(row, 3) = *(float*)&keypoint.octave;
+        serializedFeatures.at<int>(row, 0) = keypoint.pt.x;
+        serializedFeatures.at<int>(row, 1) = keypoint.pt.y;
+        serializedFeatures.at<int>(row, 2) = keypoint.angle;
+        serializedFeatures.at<int>(row, 3) = keypoint.octave;
+        //serializedFeatures.at<float>(row, 3) = *(float*)&keypoint.octave;
         row++;
     }
+    cout << "serializedFeatures x:" << serializedFeatures.at<int>(howManyFeatures*2, 0) << endl;
+
 
     /*
     serializedFeatures.reserve(howManyFeatures*3);  // Possible copy of descriptors
