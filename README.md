@@ -10,9 +10,13 @@ The preprocessor is written in C++, with some parts from stella_vslam open sourc
 
 - Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html)
 - Activate emsdk properly following the instructions on the emscripten site
-- Run source /path/to/emsdk/emsdk_env.sh
-- Run emmake make in this project's directory
+- Run ./build.sh , it will rename existing wasm folder and generate a new one with these two commands:
 
+    `source /path/to/emsdk/emsdk_env.sh`
+
+    `emmake make`
+
+It assumes emsdk is available through ../emsdk  .
 If all works fine, build/wasm/ directory will appear, holding the 3 files you need to use in you web page.  These files are the preprocessor itself and the initialization binding process.  You can see web-preprocessor repository for a sample of use.
 
 makefile file has the recipe to build de whole module.  It takes care of enabling multithreading.

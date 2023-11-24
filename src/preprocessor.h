@@ -36,7 +36,7 @@ public:
      * @param ptr int to be cast to pointer, with the address of image buffer
      * @param width of the image
      * @param height of the image
-     * @return val Serialized features.  See toArray for object description.
+     * @return val Serialized features, aka "image descriptor".  See toArray for object description.
      */
     val preprocess(int ptr, int width, int height);
 
@@ -77,6 +77,14 @@ private:
      * @return val , the javacript object wrapping the array
      */
     val toArray(Mat mat);
+    
+    /**
+     * @brief Preserves Mat data after destruction of local Mat containers
+     * This Mat stores a copy of toArray() Mat argument, 
+     * so at least one pointer to its data survives after returning to javascript.
+     * This buffer persists until toArray() is invoked again.
+     */
+    Mat toArrayMatBuffer;
 
     // Properties
     /** Extractor, initialized on construction */
