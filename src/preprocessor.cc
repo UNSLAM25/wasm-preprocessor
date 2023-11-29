@@ -6,9 +6,9 @@
 
 #define MAT(mat) cout << #mat ": rows " << mat.rows << ", cols " << mat.cols << ", type " << mat.type() << ", bytes " <<  mat.total()*mat.elemSize() << endl;
 
-Preprocessor::Preprocessor(const int max_num_keypoints){    
+Preprocessor::Preprocessor(const int min_size){    
     orb_params * orb_params_ = new orb_params("default");
-    extractor = new orb_extractor(orb_params_, max_num_keypoints, {});
+    extractor = new orb_extractor(orb_params_, min_size, {});
 }
 
 cv::Mat Preprocessor::to8UC4Mat(int ptr, int width, int height){

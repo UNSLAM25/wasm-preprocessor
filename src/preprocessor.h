@@ -20,7 +20,9 @@ public:
      * 
      * @param max_num_keypoints Limits the number of keypoints, extra keypoints detected will be eliminated by quadtree
      */
-    Preprocessor(const int max_num_keypoints);
+    Preprocessor(const int min_size);
+
+    Preprocessor():Preprocessor(800){};
 
     /**
      * @brief Bound method to process a supplied image
