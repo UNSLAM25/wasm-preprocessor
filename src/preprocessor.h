@@ -36,9 +36,12 @@ public:
      * @param ptr int to be cast to pointer, with the address of image buffer
      * @param width of the image
      * @param height of the image
+     * @param debug 0 (default) means no debug, 1 adds a debug row to the returned matrix.
      * @return val Serialized features, aka "image descriptor".  See toArray for object description.
+     * 
+     * emscripten isn't binding the optional parameter "debug", this method only works if all parameters are explicit given.
      */
-    val preprocess(int ptr, int width, int height);
+    val preprocess(int ptr, int width, int height, int debug = 0);
 
     /**
      * @brief Gets the annotated image
