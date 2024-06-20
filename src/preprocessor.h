@@ -7,6 +7,7 @@
 #include "opencv2/features2d.hpp"
 #include <emscripten/emscripten.h>
 #include <emscripten/val.h>
+#include <emscripten/websocket.h>
 
 using namespace emscripten;
 using namespace cv;
@@ -54,6 +55,16 @@ public:
      */
     val getAnnotations();
 
+    /**
+     * @brief Initializes the websocket connection
+     * Constructs a websocket instance in the given IP and Port. 
+     * Also setups a callback to process received messages from the server.     
+     *      
+     * Should be called after Preprocessor class instantiation.
+     */
+    void initWebsocket(const std::string SERVER_IP);
+
+    static EM_BOOL onServerMessage(int eventType, const EmscriptenWebSocketMessageEvent *websocketEvent, void *userData);
 private:
     /**
      * @brief Grabs a memory allocated uint8 array image, and return a Mat CV_8UC4
@@ -106,5 +117,20 @@ private:
      * Only consumed by getAnnotations()
      */
     Mat imGray;
+
+    /** 
+     * Will house a websokect instance, used to send data to the server
+     */
+    EMSCRIPTEN_WEBSOCKET_T websocket;
+
+    /**
+     * @brief Checks if the websocket connection is still alive
+     */
+    bool isConnected();
+
+    /**
+     * @brief Sends data to the server through the websocket
+     */
+    void sendData(float * imageData, uint32_t size);
 };
 #endif // PREPROCESSOR_H
