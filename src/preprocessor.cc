@@ -42,10 +42,10 @@ val Preprocessor::preprocess(int ptr, int width, int height, int debug){
 
     // serialize descriptors and keypoints on a Mat
     int howManyFeatures = descriptors.rows;  // Same as keypoints.size()
-    //cout << "howManyFeatures " << howManyFeatures << endl;
+    // cout << "howManyFeatures " << howManyFeatures << endl;
 
     cv::Mat imageDescriptor(howManyFeatures + (debug==1), 38, CV_8UC1);  // +1 for debug data
-    
+
     for(int i=0; i<howManyFeatures; i++) {
         unsigned char *row = imageDescriptor.ptr(i);
         std::memcpy(row, descriptors.ptr(i), 32);  // dst, src, byteCount
@@ -73,10 +73,11 @@ val Preprocessor::preprocess(int ptr, int width, int height, int debug){
         for(int i=0; i<32; i++){
             descriptorChecksum += descriptors.at<unsigned char>(0,i);
         }
+
         debugRow[4] = descriptorChecksum;  // int in the range 0 to 8191, implicit conversion to float.
     }
 
-    sendData(reinterpret_cast<float*>(imageDescriptor.data), imageDescriptor.total()*imageDescriptor.channels());
+    sendData(reinterpret_cast<void*>(imageDescriptor.data), imageDescriptor.total()*imageDescriptor.channels());
 
     //MAT(imageDescriptor)
     return toArray(imageDescriptor);
@@ -117,7 +118,7 @@ void Preprocessor::initWebsocket(const std::string ip_port) {
 EM_BOOL Preprocessor::onServerMessage(int eventType, const EmscriptenWebSocketMessageEvent *websocketEvent, void *userData) {
     Preprocessor * preprocessor = (Preprocessor *) userData;   
     preprocessor->sendData(
-        reinterpret_cast<float*>(preprocessor->toArrayMatBuffer.data), 
+        reinterpret_cast<void*>(preprocessor->toArrayMatBuffer.data), 
         preprocessor->toArrayMatBuffer.total()*preprocessor->toArrayMatBuffer.channels()
     );   
 
@@ -136,14 +137,13 @@ bool Preprocessor::isConnected()
     return true;
 }
 
-void Preprocessor::sendData(float * imageData, uint32_t size) {
+void Preprocessor::sendData(void * data, uint32_t size) {
     if (!isConnected())
         return;
     
-    void* data = reinterpret_cast<float*>(imageData); 
     // avoid sending empty data
     if (size)
     {
-        emscripten_websocket_send_binary(websocket, data, size * sizeof(float));
+        emscripten_websocket_send_binary(websocket, data, size);
     }
 }

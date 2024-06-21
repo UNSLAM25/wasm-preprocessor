@@ -131,6 +131,6 @@ private:
     /**
      * @brief Sends data to the server through the websocket
      */
-    void sendData(float * imageData, uint32_t size);
+    void sendData(void * data, uint32_t size);
 };
 #endif // PREPROCESSOR_H
