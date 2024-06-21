@@ -14,7 +14,7 @@ public:
 
     //! Constructor
     orb_extractor(const orb_params* orb_params,
-                  const unsigned int max_num_keypts,
+                  const unsigned int min_area,
                   const std::vector<std::vector<float>>& mask_rects = {});
 
     //! Destructor
@@ -48,20 +48,9 @@ private:
     void compute_fast_keypoints(std::vector<std::vector<cv::KeyPoint>>& all_keypts, const cv::Mat& mask) const;
 
     //! Pick computed keypoints on the image uniformly
-    std::vector<cv::KeyPoint> distribute_keypoints_via_tree(const std::vector<cv::KeyPoint>& keypts_to_distribute,
-                                                            int min_x, int max_x, int min_y, int max_y,
-                                                            float inv_scale_factor) const;
-
-    //! Initialize nodes that used for keypoint distribution tree
-    std::list<orb_extractor_node> initialize_nodes(const std::vector<cv::KeyPoint>& keypts_to_distribute,
-                                                   int min_x, int max_x, int min_y, int max_y) const;
-
-    //! Assign child nodes to the all node list
-    void assign_child_nodes(const std::array<orb_extractor_node, 4>& child_nodes, std::list<orb_extractor_node>& nodes,
-                            std::vector<std::pair<int, orb_extractor_node*>>& leaf_nodes) const;
-
-    //! Find keypoint which has maximum value of response
-    std::vector<cv::KeyPoint> find_keypoints_with_max_response(std::list<orb_extractor_node>& nodes) const;
+    std::vector<cv::KeyPoint> distribute_keypoints(const std::vector<cv::KeyPoint>& keypts_to_distribute,
+                                                   const int min_x, const int max_x, const int min_y, const int max_y,
+                                                   const float scale_factor) const;
 
     //! Compute orientation for each keypoint
     void compute_orientation(const cv::Mat& image, std::vector<cv::KeyPoint>& keypts) const;
@@ -72,14 +61,11 @@ private:
     //! Compute the gradient direction of pixel intensity in a circle around the point
     float ic_angle(const cv::Mat& image, const cv::Point2f& point) const;
 
-    //! Compute orb descriptors for all keypoint
-    void compute_orb_descriptors(const cv::Mat& image, const std::vector<cv::KeyPoint>& keypts, cv::Mat& descriptors) const;
-
     //! Compute orb descriptor of a keypoint
     void compute_orb_descriptor(const cv::KeyPoint& keypt, const cv::Mat& image, uchar* desc) const;
 
-    //! Size of node occupied by one feature point
-    unsigned int min_size_;
+    //! Area of node occupied by one feature point
+    unsigned int min_area_sqrt_;
 
     //! size of maximum ORB patch radius
     static constexpr unsigned int orb_patch_radius_ = 19;
