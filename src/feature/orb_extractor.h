@@ -2,7 +2,6 @@
 #define STELLA_VSLAM_FEATURE_ORB_EXTRACTOR_H
 
 #include "orb_params.h"
-#include "orb_extractor_node.h"
 #include "orb_impl.h"
 
 #include <opencv2/core/mat.hpp>

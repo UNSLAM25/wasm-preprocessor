@@ -77,7 +77,11 @@ val Preprocessor::preprocess(int ptr, int width, int height, int debug){
         debugRow[4] = descriptorChecksum;  // int in the range 0 to 8191, implicit conversion to float.
     }
 
-    sendData(reinterpret_cast<void*>(imageDescriptor.data), imageDescriptor.total()*imageDescriptor.channels());
+    if (this->websocket)
+    {
+        sendData(reinterpret_cast<void*>(imageDescriptor.data), imageDescriptor.total()*imageDescriptor.channels());
+    }
+
 
     //MAT(imageDescriptor)
     return toArray(imageDescriptor);

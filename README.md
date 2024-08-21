@@ -19,7 +19,7 @@ The preprocessor is written in C++, with some parts from stella_vslam open sourc
 It assumes emsdk is available through ../emsdk  .
 If all works fine, build/wasm/ directory will appear, holding the 3 files you need to use in you web page.  These files are the preprocessor itself and the initialization binding process.  You can see web-preprocessor repository for a sample of use.
 
-makefile file has the recipe to build de whole module.  It takes care of enabling multithreading.
+makefile file has the recipe to build the whole module. It takes care of enabling multithreading.
 
 # Wasm object
 
