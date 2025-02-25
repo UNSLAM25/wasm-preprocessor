@@ -8,7 +8,7 @@ The preprocessor is written in C++, with some parts from stella_vslam open sourc
 
 # Compiling instructions
 
-- Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html)
+- Install [emsdk](https://emscripten.org/docs/getting_started/downloads.html). **Tested with version 4.0.3.**
 - Activate emsdk properly following the instructions on the emscripten site
 - Run ./build.sh , it will rename existing wasm folder and generate a new one with these two commands:
 
